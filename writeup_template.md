@@ -71,7 +71,7 @@ As a first step, I normalized the image data from RGB values of 0 - 255 to 0.0 t
 
 As a second step, I decided to convert images to HSV to implement brightness augmentation. By adding random brightness to the images the models should learn not to rely on brightness for sign classification.
 
-Here is an example of a traffic sign image before and after normalization and brightness augmentation.
+Here is an example of a traffic sign image before and after processing: normalization + brightness augmentation.
 
 ![alt text][image10]
 
@@ -140,12 +140,15 @@ My final model results were:
 
 If an iterative approach was chosen:
 * What was the first architecture that was tried and why was it chosen?
+LeNet was first chosen due to familiarity and simplicity. I understood all layers and thought that LeNet would provide a good benchmark. It is a pioneering model that was first applied to classifies digits and worked well 'out-of-the-box' for classifying traffic signs.
 * What were some problems with the initial architecture?
 * How was the architecture adjusted and why was it adjusted? Typical adjustments could include choosing a different model architecture, adding or taking away layers (pooling, dropout, convolution, etc), using an activation function or changing the activation function. One common justification for adjusting an architecture would be due to over fitting or under fitting. A high accuracy on the training set but low accuracy on the validation set indicates over fitting; a low accuracy on both sets indicates under fitting.
+Extra fully connected layer added
 * Which parameters were tuned? How were they adjusted and why?
 * What are some of the important design choices and why were they chosen? For example, why might a convolution layer work well with this problem? How might a dropout layer help with creating a successful model?
 
 If a well known architecture was chosen:
+(see above regarding LeNet
 * What architecture was chosen?
 * Why did you believe it would be relevant to the traffic sign application?
 * How does the final model's accuracy on the training, validation and test set provide evidence that the model is working well?

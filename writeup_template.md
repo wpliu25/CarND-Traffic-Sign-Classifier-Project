@@ -28,7 +28,7 @@ The goals / steps of this project are the following:
 [image7]: ./examples/placeholder.png "Traffic Sign 4"
 [image8]: ./examples/placeholder.png "Traffic Sign 5"
 [image9]: ./examples/class_label_histogram.png "Class Label Histogram"
-[image10]: ./examples/brightness.png "Brightness Augmentation"
+[image10]: ./examples/processed.png "Brightness Augmentation"
 
 ## Rubric Points
 ###Here I will consider the [rubric points](https://review.udacity.com/#!/rubrics/481/view) individually and describe how I addressed each point in my implementation.  

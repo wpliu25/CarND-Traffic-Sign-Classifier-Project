@@ -18,10 +18,6 @@ X_train, y_train = train['features'], train['labels']
 X_valid, y_valid = valid['features'], valid['labels']
 X_test, y_test = test['features'], test['labels']
 
-assert(len(X_train) == len(y_train))
-assert(len(X_valid) == len(y_valid))
-assert(len(X_test) == len(y_test))
-
 ### Replace each question mark with the appropriate value.
 ### Use python, pandas or numpy methods rather than hard coding the results
 
@@ -40,19 +36,110 @@ image_shape = format(X_train[0].shape)
 # TODO: How many unique classes/labels there are in the dataset.
 n_classes = len(set(y_train))
 
+### Data exploration visualization code goes here.
+### Feel free to use as many code cells as needed.
+import random
+import matplotlib.pyplot as plt
+import matplotlib
+# Visualizations will be shown in the notebook.
+#%matplotlib inline
+
+n_sample_images = 10
+# Plot random n sample images
+#print('%s Sample images', n_sample_images)
+for i in range(n_sample_images):
+    plt.subplot(2,n_sample_images/2,i+1)
+    index = random.randint(0, len(X_train))
+    plt.imshow(X_train[index].squeeze())
+
 ### Preprocess the data here. Preprocessing steps could include normalization, converting to grayscale, etc.
 ### Feel free to use as many code cells as needed.
 from sklearn.utils import shuffle
 
 X_train, y_train = shuffle(X_train, y_train)
 
+import numpy as np
+def rgb2gray(imgs):
+    # convert to grayscale
+    return np.mean(imgs, axis=3, keepdims=True)
+
+def normalize(img, a = -0.5, b = 0.5, Xmin = 0.0, Xmax = 255.0):
+    """
+    Normalize the image data with Min-Max scaling to a range of [a, b]
+    :param image_data: The image data to be normalized
+    :return: Normalized image data
+    """
+    #Xp = np.zeros((img.shape[0], img.shape[1], img.shape[2], 1))
+
+    for c in range(img.shape[2]):
+        X = img;
+        Xp = a + (X-Xmin)*(b-a)/(Xmax-Xmin)
+
+    return Xp
+
+add_random_brightness = 1
+# this function will be used to preprocess all images
+def preprocess_images(images, brightness = 0):
+    shape = images.shape
+    out_img_shape = (shape[1], shape[2], 1)
+    batch = np.zeros((shape[0], shape[1], shape[2], shape[3]))
+
+    for i in range(len(images)):
+        img = images[i, :]
+        img = normalize(img, 0.0, 1.0, 0.0, 255.0)
+        if(brightness == 1):
+            img_hsv = matplotlib.colors.rgb_to_hsv(img)
+            random = 0.5 + np.random.uniform()
+            img_hsv[:, :, 2] = img_hsv[:, :, 2] * random
+            img_hsv[:, :, 2][img_hsv[:, :, 2] > 1.0] = 1.0
+            img= matplotlib.colors.hsv_to_rgb(img_hsv)
+        img = normalize(img, -0.5, 0.5, 0.0, 1.0)
+        batch[i] = img
+    return batch
+
+X_train_p = preprocess_images(X_train[0:n_train], add_random_brightness)
+X_valid_p = preprocess_images(X_valid[0:n_valid], add_random_brightness)
+X_test_p = preprocess_images(X_test[0:n_test], add_random_brightness)
+C = X_train_p[0].shape[2]
+
+# TODO: Number of training examples
+n_train_p = len(X_train_p)
+
+# TODO: Number of valid examples
+n_valid_p = len(X_valid_p)
+
+# TODO: Number of testing examples.
+n_test_p = len(X_test_p)
+
+# TODO: What's the shape of an traffic sign image?
+image_shape_p = format(X_train_p[0].shape)
+
+print("Number of training examples =", n_train_p)
+print("Number of testing examples =", n_test_p)
+print("Image data shape =", image_shape_p)
+print("Number of classes =", n_classes)
+
+### Data exploration visualization code goes here.
+### Feel free to use as many code cells as needed.
+import random
+import matplotlib.pyplot as plt
+# Visualizations will be shown in the notebook.
+#%matplotlib inline
+
+n_sample_images = 10
+# Plot random n sample images
+#print('%s Sample images', n_sample_images)
+for i in range(n_sample_images):
+    plt.subplot(2,n_sample_images/2,i+1)
+    index = random.randint(0, len(X_train_p))
+    img = X_train_p[index]
+    img = normalize(img, 0.0, 1.0, -0.5, 0.5)
+    plt.imshow(img.squeeze())
+
 ### Define your architecture here.
 ### Feel free to use as many code cells as needed.
 import tensorflow as tf
 from tensorflow.contrib.layers import flatten
-
-EPOCHS = 1000
-BATCH_SIZE = 128
 
 def LeNet(x):
     # Arguments used for tf.truncated_normal, randomly defines variables for the weights and biases for each layer
@@ -107,112 +194,9 @@ def LeNet(x):
 
     return logits
 
-
-'''
-def LeNet(x):
-    # Arguments used for tf.truncated_normal, randomly defines variables for the weights and biases for each layer
-    mu = 0
-    sigma = 0.1
-
-    # TODO: Layer 1: Convolutional. Input = 32x32x1. Output = 28x28x6.
-    conv_layer1_W = tf.Variable(tf.truncated_normal(shape=(5, 5, C, 6), mean = mu, stddev = sigma))
-    conv_layer1_b = tf.Variable(tf.zeros(6))
-    conv_layer1 = tf.nn.conv2d(x, conv_layer1_W, strides=[1, 1, 1, 1], padding='VALID') + conv_layer1_b
-
-    # TODO: Activation.
-    conv_layer1 = tf.nn.relu(conv_layer1)
-
-    # TODO: Pooling. Input = 28x28x6. Output = 14x14x6.
-    conv_layer1 = tf.nn.max_pool(conv_layer1,ksize=[1, 2, 2, 1],strides=[1, 2, 2, 1], padding='VALID')
-
-    # TODO: Layer 2: Convolutional. Output = 10x10x16.
-    conv_layer2_W = tf.Variable(tf.truncated_normal(shape=(5, 5, 6, 16), mean = mu, stddev = sigma))
-    conv_layer2_b = tf.Variable(tf.zeros(16))
-    conv_layer2 = tf.nn.conv2d(conv_layer1, conv_layer2_W, strides=[1, 1, 1, 1], padding='VALID') + conv_layer2_b
-
-    # TODO: Activation.
-    conv_layer2 = tf.nn.relu(conv_layer2)
-
-    # TODO: Pooling. Input = 10x10x16. Output = 5x5x16.
-    conv_layer2 = tf.nn.max_pool(conv_layer2,ksize=[1, 2, 2, 1],strides=[1, 2, 2, 1], padding='VALID')
-
-    # TODO: Flatten. Input = 5x5x16. Output = 400.
-    flatten_layer3   = flatten(conv_layer2)
-
-    # TODO: Layer 3: Fully Connected. Input = 400. Output = 120.
-    flatten_layer3_W = tf.Variable(tf.truncated_normal(shape=(400, 120), mean = mu, stddev = sigma))
-    flatten_layer3_b = tf.Variable(tf.zeros(120))
-    flatten_layer3   = tf.matmul(flatten_layer3, flatten_layer3_W) + flatten_layer3_b
-
-    # TODO: Activation.
-    flatten_layer4 = tf.nn.relu(flatten_layer3)
-
-    # TODO: Layer 4: Fully Connected. Input = 120. Output = 84.
-    flatten_layer4_W = tf.Variable(tf.truncated_normal(shape=(120, 84), mean = mu, stddev = sigma))
-    flatten_layer4_b = tf.Variable(tf.zeros(84))
-    flatten_layer4   = tf.matmul(flatten_layer4, flatten_layer4_W) + flatten_layer4_b
-
-    # TODO: Activation.
-    flatten_layer5 = tf.nn.relu(flatten_layer4)
-
-    # TODO: Layer 5: Fully Connected. Input = 84. Output = n_classes.
-    flatten_layer5_W = tf.Variable(tf.truncated_normal(shape=(84, n_classes), mean = mu, stddev = sigma))
-    flatten_layer5_b = tf.Variable(tf.zeros(n_classes))
-    logits   = tf.matmul(flatten_layer5, flatten_layer5_W) + flatten_layer5_b
-
-    return logits
-'''
-
-import numpy as np
-
-def normalize(img):
-    """
-    Normalize the image data with Min-Max scaling to a range of [0.1, 0.9]
-    :param image_data: The image data to be normalized
-    :return: Normalized image data
-    """
-    #Xp = np.zeros((img.shape[0], img.shape[1], img.shape[2], 1))
-
-    for c in range(img.shape[2]):
-        a = 0.1;b = 0.9; Xmin = 0.0;Xmax = 255.0;
-        X = img;
-        Xp = a + (X-Xmin)*(b-a)/(Xmax-Xmin)
-
-    return Xp
-
-
-# this function will be used to preprocess all images
-def preprocess_images(images):
-    shape = images.shape
-    out_img_shape = (shape[1], shape[2], 1)
-    batch = np.zeros((shape[0], shape[1], shape[2], shape[3]))
-
-    for i in range(len(images)):
-        img = images[i, :]
-        img = normalize(img)
-        batch[i] = img
-    return batch
-
-X_train = preprocess_images(X_train[0:n_train])
-X_valid = preprocess_images(X_valid[0:n_valid])
-X_test = preprocess_images(X_test[0:n_test])
-C = X_train[0].shape[2]
-
-print("Number of training examples =", n_train)
-print("Number of testing examples =", n_test)
-print("Image data shape =", image_shape)
-print("Number of classes =", n_classes)
-
-### Train your model here.
-### Calculate and report the accuracy on the training and validation set.
-### Once a final model architecture is selected,
-### the accuracy on the test set should be calculated and reported as well.
-### Feel free to use as many code cells as needed.
-x = tf.placeholder(tf.float32, (None, 32, 32, C))
-y = tf.placeholder(tf.int32, (None))
-one_hot_y = tf.one_hot(y, n_classes)
-
-rate = 0.001
+EPOCHS = 10
+BATCH_SIZE = 128
+rate = 0.0009
 
 logits = LeNet(x)
 cross_entropy = tf.nn.softmax_cross_entropy_with_logits(logits, one_hot_y)
@@ -238,18 +222,18 @@ def evaluate(X_data, y_data):
 
 with tf.Session() as sess:
     sess.run(tf.initialize_all_variables())
-    num_examples = len(X_train)
+    num_examples = len(X_train_p)
 
     print("Training...")
     print()
     for i in range(EPOCHS):
-        X_train, y_train = shuffle(X_train, y_train)
+        X_train_p, y_train = shuffle(X_train_p, y_train)
         for offset in range(0, num_examples, BATCH_SIZE):
             end = offset + BATCH_SIZE
-            batch_x, batch_y = X_train[offset:end], y_train[offset:end]
+            batch_x, batch_y = X_train_p[offset:end], y_train[offset:end]
             sess.run(training_operation, feed_dict={x: batch_x, y: batch_y})
 
-        validation_accuracy = evaluate(X_valid, y_valid)
+        validation_accuracy = evaluate(X_valid_p, y_valid)
         print("EPOCH {} ...".format(i + 1))
         print("Validation Accuracy = {:.3f}".format(validation_accuracy))
         print()
@@ -260,7 +244,7 @@ with tf.Session() as sess:
 with tf.Session() as sess:
     saver.restore(sess, tf.train.latest_checkpoint('.'))
 
-    test_accuracy = evaluate(X_test, y_test)
+    test_accuracy = evaluate(X_test_p, y_test)
     print("Test Accuracy = {:.3f}".format(test_accuracy))
 
 ### Load the images and plot them here.

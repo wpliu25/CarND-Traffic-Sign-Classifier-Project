@@ -27,6 +27,8 @@ The goals / steps of this project are the following:
 [image6]: ./examples/placeholder.png "Traffic Sign 3"
 [image7]: ./examples/placeholder.png "Traffic Sign 4"
 [image8]: ./examples/placeholder.png "Traffic Sign 5"
+[image9]: ./examples/class_label_histogram.png "Class Label Histogram"
+[image10]: ./examples/brightness.png "Brightness Augmentation"
 
 ## Rubric Points
 ###Here I will consider the [rubric points](https://review.udacity.com/#!/rubrics/481/view) individually and describe how I addressed each point in my implementation.  
@@ -55,9 +57,9 @@ signs data set:
 ####2. Include an exploratory visualization of the dataset and identify where the code is in your code fil
 The code for this step is contained in the third code cell of the IPython notebook.  
 
-Here is an exploratory visualization of the data set. It is a bar chart showing how the data ...
+Here is an exploratory visualization of the data set. It is a bar chart showing a histogram of the labels in the original training data.
 
-[image1]: ./report/class_label_histogram.png "Class Label Histogram"
+![alt text][image9]
 
 ###Design and Test a Model Architecture
 
@@ -65,13 +67,15 @@ Here is an exploratory visualization of the data set. It is a bar chart showing 
 
 The code for this step is contained in the fourth code cell of the IPython notebook.
 
-As a first step, I decided to convert the images to grayscale because ...
+As a first step, I normalized the image data from RGB values of 0 - 255 to 0.0 to 1.0 because this allowed me to use use matplotlib's conversion from RGB to HSV, explained in the second step. 
 
-Here is an example of a traffic sign image before and after grayscaling.
+As a second step, I decided to convert images to HSV to implement brightness augmentation. By adding random brightness to the images the models should learn not to rely on brightness for sign classification.
 
-![alt text][image2]
+Here is an example of a traffic sign image before and after normalization and brightness augmentation.
 
-As a last step, I normalized the image data because ...
+![alt text][image10]
+
+As a last step, I normalized the image data from RGB values of 0.0 to 1.0 to -0.5 to 0.5 after several iterations where these changes improved accuracy. 
 
 ####2. Describe how, and identify where in your code, you set up training, validation and testing data. How much data was in each set? Explain what techniques were used to split the data into these sets. (OPTIONAL: As described in the "Stand Out Suggestions" part of the rubric, if you generated additional data for training, describe why you decided to generate additional data, how you generated the data, identify where in your code, and provide example images of the additional data)
 

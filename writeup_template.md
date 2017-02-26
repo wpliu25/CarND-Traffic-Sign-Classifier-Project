@@ -52,13 +52,12 @@ signs data set:
 * The shape of a traffic sign image is (32, 32, 3)
 * The number of unique classes/labels in the data set is 43
 
-####2. Include an exploratory visualization of the dataset and identify where the code is in your code file.
-
+####2. Include an exploratory visualization of the dataset and identify where the code is in your code fil
 The code for this step is contained in the third code cell of the IPython notebook.  
 
 Here is an exploratory visualization of the data set. It is a bar chart showing how the data ...
 
-![alt text][image1]
+[image1]: ./report/class_label_histogram.png "Class Label Histogram"
 
 ###Design and Test a Model Architecture
 
@@ -95,17 +94,22 @@ The difference between the original data set and the augmented data set is the f
 
 The code for my final model is located in the seventh cell of the ipython notebook. 
 
-My final model consisted of the following layers:
+My final model, using LeNet, consisted of the following layers:
 
 | Layer         		|     Description	        					| 
 |:---------------------:|:---------------------------------------------:| 
 | Input         		| 32x32x3 RGB image   							| 
-| Convolution 3x3     	| 1x1 stride, same padding, outputs 32x32x64 	|
+| Convolution 5x5     	| 1x1 stride, Valid padding, outputs 28x28x6 	|
 | RELU					|												|
-| Max pooling	      	| 2x2 stride,  outputs 16x16x64 				|
-| Convolution 3x3	    | etc.      									|
-| Fully connected		| etc.        									|
-| Softmax				| etc.        									|
+| Max pooling	      	| 2x2 stride,  outputs 14x14x6 				|
+| Convolution 5x5     	| 1x1 stride, Valid padding, outputs 10x10x16 	|
+| RELU					|												|
+| Max pooling	      	| 2x2 stride,  outputs 5x5x16 				|
+| Fully connected		| Input 400 Output = 120        									|
+| RELU					|												|
+| Fully connected		| Input 120 Output = 84        									|
+| RELU					|												|
+| Fully connected		| Input 84 Output = number of classes = 43        									|
 |						|												|
 |						|												|
  
@@ -115,7 +119,11 @@ My final model consisted of the following layers:
 
 The code for training the model is located in the eigth cell of the ipython notebook. 
 
-To train the model, I used an ....
+To train the model, I used the following:
+* 50     epochs
+* 128    batch size
+* 0.0009 learning rate
+* AdamOptimizer, Kingma and Ba's Adam algorithm. Advantages provided by Adam over GradientDescentOptimizer includes uses moving averages of the parameters (momentum). Disadvantages of Adam is that it requires more computation to be performed for each parameter in each training step and more state to be retained for each parameter.
 
 ####5. Describe the approach taken for finding a solution. Include in the discussion the results on the training, validation and test sets and where in the code these were calculated. Your approach may have been an iterative process, in which case, outline the steps you took to get to the final solution and why you chose those steps. Perhaps your solution involved an already well known implementation or architecture. In this case, discuss why you think the architecture is suitable for the current problem.
 

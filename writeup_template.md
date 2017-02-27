@@ -27,8 +27,9 @@ The goals / steps of this project are the following:
 [image6]: ./examples/placeholder.png "Traffic Sign 3"
 [image7]: ./examples/placeholder.png "Traffic Sign 4"
 [image8]: ./examples/placeholder.png "Traffic Sign 5"
-[image9]: ./examples/class_label_histogram.png "Class Label Histogram"
+[image9]: ./examples/statistics.png "Class Label Histogram"
 [image10]: ./examples/processed.png "Brightness Augmentation"
+[image11]: ./examples/spatial_transform_augmentation.png "Spatial Augmentation"
 
 ## Rubric Points
 ###Here I will consider the [rubric points](https://review.udacity.com/#!/rubrics/481/view) individually and describe how I addressed each point in my implementation.  
@@ -38,7 +39,7 @@ The goals / steps of this project are the following:
 
 ####1. Provide a Writeup / README that includes all the rubric points and how you addressed each one. You can submit your writeup as markdown or pdf. You can use this template as a guide for writing the report. The submission includes the project code.
 
-You're reading it! and here is a link to my [project code](https://github.com/udacity/CarND-Traffic-Sign-Classifier-Project/blob/master/Traffic_Sign_Classifier.ipynb)
+You're reading it! and here is a link to my [project code](https://github.com/wpliu25/CarND-Traffic-Sign-Classifier-Project/blob/master/Traffic_Sign_Classifier.ipynb)
 
 ###Data Set Summary & Exploration
 
@@ -85,14 +86,20 @@ To cross validate my model, I randomly split the training data into a training s
 
 My final training set had X number of images. My validation set and test set had Y and Z number of images.
 
-The sixth code cell of the IPython notebook contains the code for augmenting the data set. I decided to generate additional data because ... To add more data to the the data set, I used the following techniques because ... 
+* The size of the final augmented training set is 40360
+* The size of test set is 12630
+* The shape of a traffic sign image is (32, 32, 1)
+* The number of unique classes/labels in the data set is 43
 
-Here is an example of an original image and an augmented image:
+The sixth code cell of the IPython notebook contains the code for augmenting the data set. I decided to generate additional data after looking at the histogram of the training dataset which had uneven distribution of labels. To add more data to the the data set, I used random 2D translation of up to -5 to 5 pixels (left and right) as well as random rotation of up to -45 to 45 degrees. These spatial transformations were chosen to match real world scenarios of variation of the image of the sign as captured by the car's camera.
 
-![alt text][image3]
+Here are example of 10 original image and it's randomly augmented image for translation and rotation:
+
+![alt text][image11]
 
 The difference between the original data set and the augmented data set is the following ... 
-
+All labels less than 1000 were augmented 30% of their difference between existing count and 1000.
+ex: label 1 only had 180 to start and was augmented with 270 more examples, i.e. floor((1000-180)*0.33) = 270
 
 ####3. Describe, and identify where in your code, what your final model architecture looks like including model type, layers, layer sizes, connectivity, etc.) Consider including a diagram and/or table describing the final model.
 
@@ -109,7 +116,9 @@ My final model, using LeNet, consisted of the following layers:
 | Convolution 5x5     	| 1x1 stride, Valid padding, outputs 10x10x16 	|
 | RELU					|												|
 | Max pooling	      	| 2x2 stride,  outputs 5x5x16 				|
-| Fully connected		| Input 400 Output = 120        									|
+| Fully connected		| Input 400 Output = 320        									|
+| RELU					|												|
+| Fully connected		| Input 320 Output = 120        									|
 | RELU					|												|
 | Fully connected		| Input 120 Output = 84        									|
 | RELU					|												|
@@ -134,21 +143,25 @@ To train the model, I used the following:
 The code for calculating the accuracy of the model is located in the ninth cell of the Ipython notebook.
 
 My final model results were:
-* training set accuracy of ?
-* validation set accuracy of ? 
-* test set accuracy of ?
+* training set accuracy of 1.0
+* validation set accuracy of 1.0 
+* test set accuracy of 0.93
 
 If an iterative approach was chosen:
 * What was the first architecture that was tried and why was it chosen?
 LeNet was first chosen due to familiarity and simplicity. I understood all layers and thought that LeNet would provide a good benchmark. It is a pioneering model that was first applied to classifies digits and worked well 'out-of-the-box' for classifying traffic signs.
 * What were some problems with the initial architecture?
 * How was the architecture adjusted and why was it adjusted? Typical adjustments could include choosing a different model architecture, adding or taking away layers (pooling, dropout, convolution, etc), using an activation function or changing the activation function. One common justification for adjusting an architecture would be due to over fitting or under fitting. A high accuracy on the training set but low accuracy on the validation set indicates over fitting; a low accuracy on both sets indicates under fitting.
-Extra fully connected layer added
+I added an additional fully connected layer in order to decrease the number linear classifiers at a slower rate.
+Original: 2 layers were used to decrease fully connection layers from 400->120->84->43
+Final:    3 layers were used to decrease fully connection layers from 400->320->120->84->43
 * Which parameters were tuned? How were they adjusted and why?
+I adjusted the learning rate slightly from 0.001 to 0.0009
 * What are some of the important design choices and why were they chosen? For example, why might a convolution layer work well with this problem? How might a dropout layer help with creating a successful model?
+2 convolutional layers should first learn to recognize edges then shape, respectively. This was hypothesized to work well as significant features of road signs.
 
 If a well known architecture was chosen:
-(see above regarding LeNet
+(see above regarding LeNet)
 * What architecture was chosen?
 * Why did you believe it would be relevant to the traffic sign application?
 * How does the final model's accuracy on the training, validation and test set provide evidence that the model is working well?

@@ -160,15 +160,12 @@ Original: 2 layers were used to decrease fully connection layers from 400->120->
 Final:    3 layers were used to decrease fully connection layers from 400->320->120->84->43
 * Which parameters were tuned? How were they adjusted and why?
 I adjusted the learning rate slightly from 0.001 to 0.0009 which made a small improvement. This might be due to small step size, as imposed by the learning rate to 
-* What are some of the important design choices and why were they chosen? For example, why might a convolution layer work well with this problem? How might a dropout layer help with creating a successful model?
+* What are some of the important design choices and why were they chosen? 
 2 convolutional layers should first learn to recognize edges then shape, respectively. This was hypothesized to work well as significant features of road signs.
 
 If a well known architecture was chosen:
 (see above regarding LeNet)
-* What architecture was chosen?
-* Why did you believe it would be relevant to the traffic sign application?
-* How does the final model's accuracy on the training, validation and test set provide evidence that the model is working well?
- 
+
 
 ###Test a Model on New Images
 
@@ -186,14 +183,19 @@ The image, 'Dangerous Curve Left 19',  might be difficult to classify because of
 The code for making predictions on my final model is located in the tenth cell of the Ipython notebook.
 
 Here are the results of the prediction:
+[image4]: ./examples/road_work_25.png "Road Work 25"
+[image5]: ./examples/keep_right_38.png "Keep Right 38"
+[image6]: ./examples/priority_road_12.png "Priority Road 12"
+[image7]: ./examples/dangerous_curve_left_19.png "Dangerous Curve Left 19"
+[image8]: ./examples/Speed_limit_60_3-0.png "Speed Limit 60"
 
 | Image			        |     Prediction	        					| 
 |:---------------------:|:---------------------------------------------:| 
-| Stop Sign      		| Stop sign   									| 
-| U-turn     			| U-turn 										|
-| Yield					| Yield											|
-| 100 km/h	      		| Bumpy Road					 				|
-| Slippery Road			| Slippery Road      							|
+| Road Work 25      		| Road Work 25  									| 
+| Keep Right 38    			| Speed Limit 60 										|
+| Priority Road 12					| Priority Road 12										|
+| Dangerous Curve Left 19      		| 	Road Work 25			 				|
+| Speed Limit 60		| Speed Limit 60     							|
 
 
 The model was able to correctly guess 3 of the 5 traffic signs, which gives an accuracy of 60%. This compares infavorably to the accuracy on the test set of 92.4%. 
@@ -226,7 +228,7 @@ the model is incorrect and not very confident that this is a Speed Limit 60 (pro
 | 0.011				    | Right of Way at next intersection     							|
 
 For the third image, 'Priority Road 12'
-the model is incorrect and confident that this is a Speed Limit 60 (probability of .0.79), and the image does contain a road work sign. The top five soft max probabilities were
+the model is correct and confident that this is a Priority Road 12 (probability of .0.79), and the image does contain a road work sign. The top five soft max probabilities were
 
 | Probability         	|     Prediction	        					| 
 |:---------------------:|:---------------------------------------------:| 

@@ -1,11 +1,15 @@
 # Load pickled data
 import pickle
+import csv
+import matplotlib
+import tensorflow as tf
+from tensorflow.contrib.layers import flatten
 
 # TODO: Fill this in based on where you saved the training and testing data
 
-training_file = '/home/pcvp/code/academic/Data/CarND-Traffic-Sign-Classifier-Project/traffic-signs-data/train.p'
-validation_file = '/home/pcvp/code/academic/Data/CarND-Traffic-Sign-Classifier-Project/traffic-signs-data/valid.p'
-testing_file = '/home/pcvp/code/academic/Data/CarND-Traffic-Sign-Classifier-Project/traffic-signs-data/test.p'
+training_file = 'train_a.p'
+validation_file = 'valid.p'
+testing_file = 'test.p'
 
 with open(training_file, mode='rb') as f:
     train = pickle.load(f)
@@ -17,6 +21,12 @@ with open(testing_file, mode='rb') as f:
 X_train, y_train = train['features'], train['labels']
 X_valid, y_valid = valid['features'], valid['labels']
 X_test, y_test = test['features'], test['labels']
+
+# read csv to get sign names
+sign_names = []
+with open('signnames.csv') as sign_name_csv:
+    sign_name_reader = csv.DictReader(sign_name_csv)
+    sign_names = [row['SignName'] for row in sign_name_reader]
 
 ### Replace each question mark with the appropriate value.
 ### Use python, pandas or numpy methods rather than hard coding the results
@@ -40,17 +50,20 @@ n_classes = len(set(y_train))
 ### Feel free to use as many code cells as needed.
 import random
 import matplotlib.pyplot as plt
-import matplotlib
 # Visualizations will be shown in the notebook.
 #%matplotlib inline
 
-n_sample_images = 10
+n_sample_images = 3
+figure, axis = plt.subplots(n_sample_images, 1, figsize=(n_sample_images, n_sample_images))
+figure.subplots_adjust(hspace = .5, wspace=.001)
+axis = axis.ravel()
 # Plot random n sample images
-#print('%s Sample images', n_sample_images)
 for i in range(n_sample_images):
-    plt.subplot(2,n_sample_images/2,i+1)
     index = random.randint(0, len(X_train))
-    plt.imshow(X_train[index].squeeze())
+    image = X_train[index]
+    axis[i].axis('off')
+    axis[i].imshow(image)
+    axis[i].set_title(sign_names[y_train[index]])
 
 ### Preprocess the data here. Preprocessing steps could include normalization, converting to grayscale, etc.
 ### Feel free to use as many code cells as needed.
@@ -94,12 +107,15 @@ def preprocess_images(images, brightness = 0):
             img_hsv[:, :, 2][img_hsv[:, :, 2] > 1.0] = 1.0
             img= matplotlib.colors.hsv_to_rgb(img_hsv)
         img = normalize(img, -0.5, 0.5, 0.0, 1.0)
-        batch[i] = img
+        batch[i,:] = img
     return batch
 
 X_train_p = preprocess_images(X_train[0:n_train], add_random_brightness)
+X_train_p = rgb2gray(X_train_p)
 X_valid_p = preprocess_images(X_valid[0:n_valid], add_random_brightness)
+X_valid_p = rgb2gray(X_valid_p)
 X_test_p = preprocess_images(X_test[0:n_test], add_random_brightness)
+X_test_p = rgb2gray(X_test_p)
 C = X_train_p[0].shape[2]
 
 # TODO: Number of training examples
@@ -138,8 +154,6 @@ for i in range(n_sample_images):
 
 ### Define your architecture here.
 ### Feel free to use as many code cells as needed.
-import tensorflow as tf
-from tensorflow.contrib.layers import flatten
 
 def LeNet(x):
     # Arguments used for tf.truncated_normal, randomly defines variables for the weights and biases for each layer
@@ -172,29 +186,46 @@ def LeNet(x):
     fc0 = flatten(conv2)
 
     # SOLUTION: Layer 3: Fully Connected. Input = 400. Output = 120.
-    fc1_W = tf.Variable(tf.truncated_normal(shape=(400, 120), mean=mu, stddev=sigma))
-    fc1_b = tf.Variable(tf.zeros(120))
+    fc1_W = tf.Variable(tf.truncated_normal(shape=(400, 320), mean=mu, stddev=sigma))
+    fc1_b = tf.Variable(tf.zeros(320))
     fc1 = tf.matmul(fc0, fc1_W) + fc1_b
 
     # SOLUTION: Activation.
     fc1 = tf.nn.relu(fc1)
 
     # SOLUTION: Layer 4: Fully Connected. Input = 120. Output = 84.
-    fc2_W = tf.Variable(tf.truncated_normal(shape=(120, 84), mean=mu, stddev=sigma))
-    fc2_b = tf.Variable(tf.zeros(84))
+    fc2_W = tf.Variable(tf.truncated_normal(shape=(320, 120), mean=mu, stddev=sigma))
+    fc2_b = tf.Variable(tf.zeros(120))
     fc2 = tf.matmul(fc1, fc2_W) + fc2_b
 
     # SOLUTION: Activation.
     fc2 = tf.nn.relu(fc2)
 
     # SOLUTION: Layer 5: Fully Connected. Input = 84. Output = 10.
-    fc3_W = tf.Variable(tf.truncated_normal(shape=(84, n_classes), mean=mu, stddev=sigma))
-    fc3_b = tf.Variable(tf.zeros(n_classes))
-    logits = tf.matmul(fc2, fc3_W) + fc3_b
+    fc3_W = tf.Variable(tf.truncated_normal(shape=(120, 84), mean=mu, stddev=sigma))
+    fc3_b = tf.Variable(tf.zeros(84))
+    fc3 = tf.matmul(fc2, fc3_W) + fc3_b
+
+    # SOLUTION: Activation.
+    fc3 = tf.nn.relu(fc3)
+
+    # SOLUTION: Layer 6: Fully Connected. Input = 84. Output = 10.
+    fc4_W = tf.Variable(tf.truncated_normal(shape=(84, n_classes), mean=mu, stddev=sigma))
+    fc4_b = tf.Variable(tf.zeros(n_classes))
+    logits = tf.matmul(fc3, fc4_W) + fc4_b
 
     return logits
 
-EPOCHS = 10
+### Train your model here.
+### Calculate and report the accuracy on the training and validation set.
+### Once a final model architecture is selected,
+### the accuracy on the test set should be calculated and reported as well.
+### Feel free to use as many code cells as needed.
+x = tf.placeholder(tf.float32, (None, 32, 32, C))
+y = tf.placeholder(tf.int32, (None))
+one_hot_y = tf.one_hot(y, n_classes)
+
+EPOCHS = 200
 BATCH_SIZE = 128
 rate = 0.0009
 
@@ -219,7 +250,7 @@ def evaluate(X_data, y_data):
         total_accuracy += (accuracy * len(batch_x))
     return total_accuracy / num_examples
 
-
+'''
 with tf.Session() as sess:
     sess.run(tf.initialize_all_variables())
     num_examples = len(X_train_p)
@@ -233,13 +264,59 @@ with tf.Session() as sess:
             batch_x, batch_y = X_train_p[offset:end], y_train[offset:end]
             sess.run(training_operation, feed_dict={x: batch_x, y: batch_y})
 
+        training_accuracy = evaluate(X_train_p, y_train)
         validation_accuracy = evaluate(X_valid_p, y_valid)
         print("EPOCH {} ...".format(i + 1))
+        print("Training Accuracy = {:.3f}".format(training_accuracy))
+        print("Validation Accuracy = {:.3f}".format(validation_accuracy))
+        print()
+
+    saver.save(sess, './lenet')
+    print("Model saved")'''
+
+import numpy as np
+from sklearn.model_selection import train_test_split
+
+training_data,validation_data,training_label,validation_label=train_test_split(X_train_p,y_train,test_size=0.2)
+
+
+with tf.Session() as sess:
+    sess.run(tf.initialize_all_variables())
+    num_examples = len(X_train_p)
+
+    print("Training...")
+    print()
+    for i in range(EPOCHS):
+        X_train1,y_train1=shuffle(training_data,training_label)
+        for offset in range(0,num_examples,BATCH_SIZE):
+            end=offset+BATCH_SIZE
+            batch_x,batch_y=X_train_p[offset:end],y_train[offset:end]
+            sess.run(training_operation,feed_dict={x:batch_x,y:batch_y})
+            validation_accuracy = evaluate(validation_data, validation_label)
+        training_accuracy = evaluate(X_train_p, y_train)
+        validation_accuracy = evaluate(X_valid_p, y_valid)
+        print("EPOCH {} ...".format(i + 1))
+        print("Training Accuracy = {:.3f}".format(training_accuracy))
         print("Validation Accuracy = {:.3f}".format(validation_accuracy))
         print()
 
     saver.save(sess, './lenet')
     print("Model saved")
+
+import matplotlib.image as mpimg
+import os
+# test on own images
+X_new_images = np.array([mpimg.imread("new_images/" + imageName) for imageName in os.listdir("new_images")])
+y_new_images = np.array([37, 28, 12, 30,3])
+
+### Run the predictions here and use the model to output the prediction for each image.
+### Make sure to pre-process the images with the same pre-processing pipeline used earlier.
+### Feel free to use as many code cells as needed.
+X_new_images_p = preprocess_images(X_new_images[0:len(X_new_images)], add_random_brightness)
+X_new_images_p = rgb2gray(X_new_images_p)
+
+### Calculate the accuracy for these 5 new images.
+### For example, if the model predicted 1 out of 5 signs correctly, it's 20% accurate on these new images.
 
 with tf.Session() as sess:
     saver.restore(sess, tf.train.latest_checkpoint('.'))
@@ -247,18 +324,15 @@ with tf.Session() as sess:
     test_accuracy = evaluate(X_test_p, y_test)
     print("Test Accuracy = {:.3f}".format(test_accuracy))
 
-### Load the images and plot them here.
-### Feel free to use as many code cells as needed.
-
-### Run the predictions here and use the model to output the prediction for each image.
-### Make sure to pre-process the images with the same pre-processing pipeline used earlier.
-### Feel free to use as many code cells as needed.
-
-### Calculate the accuracy for these 5 new images.
-### For example, if the model predicted 1 out of 5 signs correctly, it's 20% accurate on these new images.
+    new_test_accuracy = evaluate(X_new_images_p, y_new_images)
+    print("Test new image Accuracy = {:.3f}".format(new_test_accuracy))
 
 ### Print out the top five softmax probabilities for the predictions on the German traffic sign images found on the web.
 ### Feel free to use as many code cells as needed.
+
+    for image in X_new_images_p:
+        top_5 = sess.run(tf.nn.top_k(tf.nn.softmax(logits), k=5), feed_dict={x: [image]})
+        print("Top five: ", top_5)
 
 ### Visualize your network's feature maps here.
 ### Feel free to use as many code cells as needed.
